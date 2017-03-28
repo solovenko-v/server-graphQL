@@ -1,72 +1,74 @@
-const graphql = require('graphql')
+// import mongoose from 'mongoose'
+// import composeWithMongoose from 'graphql-compose-mongoose';
+// import { GQC } from 'graphql-compose';
 
-let fakeDatabase = {
-  'a': {
-    id: 'a',
-    name: 'alice',
+const mongoose = require('mongoose')
+let composeWithMongoose = require('graphql-compose-mongoose')
+const { GQC } = require('graphql-compose')
+
+// STEP 1: DEFINE MONGOOSE SCHEMA AND MODEL
+const LanguagesSchema = new mongoose.Schema({
+  language: String,
+  skill: {
+    type: String,
+    enum: ['basic', 'fluent', 'native'],
   },
-  'b': {
-    id: 'b',
-    name: 'bob',
-  },
-}
-
-const userType = new graphql.GraphQLObjectType({
-  name: 'User',
-  fields: {
-    id: { type: graphql.GraphQLString },
-    name: { type: graphql.GraphQLString }
-  }
-})
-
-const queryType = new graphql.GraphQLObjectType({
-  name: 'Query',
-  fields: {
-    user: {
-      type: userType,
-      args: {
-        id: { type: graphql.GraphQLString }
-      },
-      resolve: (_, { id }) => fakeDatabase[id]
-    }
-  }
-})
-
-const mutationType = new graphql.GraphQLObjectType({
-  name: 'Mutation',
-  description: 'jkdjfl',
-  fields: () => ({
-    addUser: {
-      type: userType,
-      description: 'add user',
-      args: {
-        name: { type: graphql.GraphQLNonNull(graphql.GraphQLString)}
-      },
-      resolve: (value, {name}) => {
-        fakeDatabase.c = name
-        return true   
-      }
-    }
-  })
-})
-
-var MutationType = new GraphQLObjectType({
-  name: 'ArticleGraph Mutations',
-  description: 'These are the things we can change',
-  fields: () => ({
-    deleteArticle: {
-      type: ArticleType,
-      description: 'Delete an article with id and return the article that was deleted.',
-      args: {
-        id: { type: new GraphQLNonNull(GraphQLInt) }
-      },
-      resolve: (value, { id }) => {
-        return ArticleServices.delete(id);
-      }
-    }
-  }),
 });
 
-// https://medium.com/@HurricaneJames/graphql-mutations-fb3ad5ae73c4
+const UserSchema = new mongoose.Schema({
+  name: String, // standard types
+  age: {
+    type: Number,
+    index: true,
+  },
+  languages: {
+    type: [LanguagesSchema], // you may include other schemas (here included as array of embedded documents)
+    default: [],
+  },
+  contacts: { // another mongoose way for providing embedded documents
+    email: String,
+    phones: [String], // array of strings
+  },
+  gender: { // enum field with values
+    type: String,
+    enum: ['male', 'female', 'ladyboy'],
+  },
+  someMixed: {
+    type: mongoose.Schema.Types.Mixed,
+    description: 'Can be any mixed type, that will be treated as JSON GraphQL Scalar Type',
+  },
+});
+const UserModel = mongoose.model('UserModel', UserSchema);
 
-module.exports = new graphql.GraphQLSchema({ query: queryType, mutation: mutationType })
+
+
+// STEP 2: CONVERT MONGOOSE MODEL TO GraphQL PIECES
+const customizationOptions = {}; // left it empty for simplicity, described below
+const UserTC = composeWithMongoose(UserModel, customizationOptions);
+
+// STEP 3: CREATE CRAZY GraphQL SCHEMA WITH ALL CRUD USER OPERATIONS
+// via graphql-compose it will be much much easier, with less typing
+GQC.rootQuery().addFields({
+  userById: UserTC.getResolver('findById'),
+  userByIds: UserTC.getResolver('findByIds'),
+  userOne: UserTC.getResolver('findOne'),
+  userMany: UserTC.getResolver('findMany'),
+  userTotal: UserTC.getResolver('count'),
+  userConnection: UserTC.getResolver('connection'),
+});
+
+GQC.rootMutation().addFields({
+  userCreate: UserTC.getResolver('createOne'),
+  userUpdateById: UserTC.getResolver('updateById'),
+  userUpdateOne: UserTC.getResolver('updateOne'),
+  userUpdateMany: UserTC.getResolver('updateMany'),
+  userRemoveById: UserTC.getResolver('removeById'),
+  userRemoveOne: UserTC.getResolver('removeOne'),
+  userRemoveMany: UserTC.getResolver('removeMany'),
+});
+
+const graphqlSchema = GQC.buildSchema();
+
+module.exports = graphqlSchema
+
+// export default graphqlSchema;
