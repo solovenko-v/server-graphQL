@@ -1,10 +1,10 @@
-// import mongoose from 'mongoose'
-// import composeWithMongoose from 'graphql-compose-mongoose';
-// import { GQC } from 'graphql-compose';
+import mongoose from 'mongoose'
+import composeWithMongoose from 'graphql-compose-mongoose';
+import { GQC } from 'graphql-compose';
 
-const mongoose = require('mongoose')
-let composeWithMongoose = require('graphql-compose-mongoose')
-const { GQC } = require('graphql-compose')
+// const mongoose = require('mongoose')
+// let composeWithMongoose = require('graphql-compose-mongoose')
+// const { GQC } = require('graphql-compose')
 
 // STEP 1: DEFINE MONGOOSE SCHEMA AND MODEL
 const LanguagesSchema = new mongoose.Schema({
@@ -69,6 +69,6 @@ GQC.rootMutation().addFields({
 
 const graphqlSchema = GQC.buildSchema();
 
-module.exports = graphqlSchema
+// module.exports = graphqlSchema
 
-// export default graphqlSchema;
+export default graphqlSchema;
