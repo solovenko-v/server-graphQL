@@ -1,6 +1,9 @@
 import mongoose from 'mongoose'
-import composeWithMongoose from 'graphql-compose-mongoose';
-import { GQC } from 'graphql-compose';
+import composeWithMongoose from 'graphql-compose-mongoose'
+import { GQC } from 'graphql-compose'
+
+mongoose.Promise = global.Promise
+mongoose.connect('localhost', 'test')
 
 // const mongoose = require('mongoose')
 // let composeWithMongoose = require('graphql-compose-mongoose')
