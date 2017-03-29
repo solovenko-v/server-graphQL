@@ -6,6 +6,8 @@ import { GQC } from 'graphql-compose';
 // let composeWithMongoose = require('graphql-compose-mongoose')
 // const { GQC } = require('graphql-compose')
 
+console.log(composeWithMongoose)
+
 // STEP 1: DEFINE MONGOOSE SCHEMA AND MODEL
 const LanguagesSchema = new mongoose.Schema({
   language: String,
