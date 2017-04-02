@@ -1,79 +1,59 @@
-import mongoose from 'mongoose'
-import composeWithMongoose from 'graphql-compose-mongoose'
-import { GQC } from 'graphql-compose'
+const mongoose = require('mongoose')
+let { composeWithMongoose } = require('graphql-compose-mongoose')
+const { GQC } = require('graphql-compose')
 
 mongoose.Promise = global.Promise
 mongoose.connect('localhost', 'test')
 
-// const mongoose = require('mongoose')
-// let composeWithMongoose = require('graphql-compose-mongoose')
-// const { GQC } = require('graphql-compose')
-
 console.log(composeWithMongoose)
 
 // STEP 1: DEFINE MONGOOSE SCHEMA AND MODEL
-const LanguagesSchema = new mongoose.Schema({
-  language: String,
-  skill: {
-    type: String,
-    enum: ['basic', 'fluent', 'native'],
-  },
-});
 
-const UserSchema = new mongoose.Schema({
-  name: String, // standard types
-  age: {
-    type: Number,
-    index: true,
-  },
-  languages: {
-    type: [LanguagesSchema], // you may include other schemas (here included as array of embedded documents)
-    default: [],
-  },
-  contacts: { // another mongoose way for providing embedded documents
-    email: String,
-    phones: [String], // array of strings
-  },
-  gender: { // enum field with values
+const TrackSchema = new mongoose.Schema({
+  name: {
     type: String,
-    enum: ['male', 'female', 'ladyboy'],
+    required: true
+  }, // standard types
+  author: {
+    type: String,
+    required: true
   },
-  someMixed: {
-    type: mongoose.Schema.Types.Mixed,
-    description: 'Can be any mixed type, that will be treated as JSON GraphQL Scalar Type',
+  duration: {
+    type: Number
   },
-});
-const UserModel = mongoose.model('UserModel', UserSchema);
-
+  updated: { 
+    type: Date, 
+    default: Date.now 
+  },
+})
+const TrackModel = mongoose.model('TrackModel', TrackSchema)
 
 
 // STEP 2: CONVERT MONGOOSE MODEL TO GraphQL PIECES
-const customizationOptions = {}; // left it empty for simplicity, described below
-const UserTC = composeWithMongoose(UserModel, customizationOptions);
+const customizationOptions = {} // left it empty for simplicity, described below
+const TrackTC = composeWithMongoose(TrackModel, customizationOptions)
 
 // STEP 3: CREATE CRAZY GraphQL SCHEMA WITH ALL CRUD USER OPERATIONS
 // via graphql-compose it will be much much easier, with less typing
 GQC.rootQuery().addFields({
-  userById: UserTC.getResolver('findById'),
-  userByIds: UserTC.getResolver('findByIds'),
-  userOne: UserTC.getResolver('findOne'),
-  userMany: UserTC.getResolver('findMany'),
-  userTotal: UserTC.getResolver('count'),
-  userConnection: UserTC.getResolver('connection'),
-});
+  trackById: TrackTC.getResolver('findById'),
+  trackByIds: TrackTC.getResolver('findByIds'),
+  trackOne: TrackTC.getResolver('findOne'),
+  trackMany: TrackTC.getResolver('findMany'),
+  trackTotal: TrackTC.getResolver('count'),
+  trackConnection: TrackTC.getResolver('connection'),
+})
 
 GQC.rootMutation().addFields({
-  userCreate: UserTC.getResolver('createOne'),
-  userUpdateById: UserTC.getResolver('updateById'),
-  userUpdateOne: UserTC.getResolver('updateOne'),
-  userUpdateMany: UserTC.getResolver('updateMany'),
-  userRemoveById: UserTC.getResolver('removeById'),
-  userRemoveOne: UserTC.getResolver('removeOne'),
-  userRemoveMany: UserTC.getResolver('removeMany'),
-});
+  trackCreate: TrackTC.getResolver('createOne'),
+  trackUpdateById: TrackTC.getResolver('updateById'),
+  trackUpdateOne: TrackTC.getResolver('updateOne'),
+  trackUpdateMany: TrackTC.getResolver('updateMany'),
+  trackRemoveById: TrackTC.getResolver('removeById'),
+  trackRemoveOne: TrackTC.getResolver('removeOne'),
+  trackRemoveMany: TrackTC.getResolver('removeMany'),
+})
 
-const graphqlSchema = GQC.buildSchema();
+const graphqlSchema = GQC.buildSchema()
 
-// module.exports = graphqlSchema
-
-export default graphqlSchema;
+module.exports = graphqlSchema

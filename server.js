@@ -1,12 +1,10 @@
-// const express = require('express')
-// const graphqlHTTP = require('express-graphql')
-// const schema = require('./data/schema')
-
-import express from 'express'
-import graphqlHTTP from 'express-graphql'
-import schema from './data/schema'
+const express = require('express')
+const graphqlHTTP = require('express-graphql')
+const schema = require('./data/schema')
+const cors = require('cors')
 
 let app = express()
+app.use('*', cors({ origin: 'http://localhost:3000' }))
 app.use('/graphql', graphqlHTTP({
   schema: schema,
   graphiql: true,
